@@ -1,17 +1,17 @@
 #pragma once
 
+#include "good_defines.hpp"
+#include "eggecutor.hpp"
+#include "os.hpp"
+
+#include <algorithm>
 #include <functional>
-#include <string>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <tuple>
-#include <vector>
 #include <unordered_map>
-
-#include "os.hpp"
-#include "eggecutor.hpp"
-
-using std::cerr;
+#include <vector>
 
 namespace tumbletest {
 
@@ -38,7 +38,7 @@ bool DefaultChecker(const std::string &in, const std::string &ok, const std::str
     return true;
 }
 
-enum TESTTYPE {
+enum TestType {
     DEBUG_TEST = -1,
     EXAMPLE = 0,
     PRETEST = 1,
@@ -47,57 +47,73 @@ enum TESTTYPE {
 
 class TestCase {
   public:
-//    TestCase&(const TestCase&) = default;
-//    TestCase&(TestCase&&) = default;
-//    TestCase& operator=(const TestCase&) = default;
-//    TestCase& operator=(TestCase&&) = default;
-    virtual ~TestCase() = default;
+    TestCase(std::function<std::string()> function, const std::string& function_call_string);
 
-    TestCase(const TESTTYPE& type, std::function<std::string()> function, const int& priority, const std::string &function_call_string);
+    virtual ~TestCase() = default;
+    
+//    MakeMoveOnly(TestCase);
+
+    // sort by type, and in case of equality, based on the time it was inserted
     bool operator<(const TestCase &rhs) const;
 
-    const std::string& GetInput();
+    // user interaction
+    TestCase& SetSeed(const unsigned& seed);
+    TestCase& SetPriority(const int& priority);
+    TestCase& SetType(const TestType& type);
 
-    void ChangeSeed(unsigned seed);
-    void AddSeedFunction(std::function<void(unsigned)> function);
+    static void AddSeedFunction(std::function<void(const unsigned&)> function);
+
+    // use
     void FailDebug();
+    const std::string& GetInput();
+    const std::string& GetInput(unsigned seed);
 
+    const int& GetPriority();
+    const TestType& GetType();
+    
+    int seed;
+    TestType type;
 
-  private:
+  protected:
+    // user added seed functions
+    static std::vector<std::function<void(unsigned)> > seed_functions;
+
+    // used for counting how many testcases are for every type
+    static int added_testcases;
+
     std::function<std::string()> function;
 
-  public:
-    TESTTYPE type;
-
-  private:
-    static std::vector<std::function<void(unsigned)> > seed_functions;
-    static std::unordered_map<int, int> num_testcases;
     int priority;
 
     // debug purpose
-    std::string function_call_string;
-    // debug purpose
     int function_added_num;
+    std::string function_call_string;
 
-    int seed;
+    // caching purpose
     bool is_computed;
     std::string input;
 };
 
 std::vector<std::function<void(unsigned)> > TestCase::seed_functions = {srand};
-std::unordered_map<int, int> TestCase::num_testcases = {};
+int TestCase::added_testcases = 0;
 
-TestCase::TestCase(const TESTTYPE& type, std::function<std::string()> function, const int& priority, const std::string &function_call_string)
-        : function(function), type(type), priority(priority), function_call_string(function_call_string) {
+TestCase::TestCase(std::function<std::string()> function, const std::string& function_call_string)
+        : type(FINAL_TEST), function(function), priority(TestCase::added_testcases++), function_call_string(function_call_string) {
     is_computed = false;
-    function_added_num = ++num_testcases[type];
-    seed = rand();
+    function_added_num = ++added_testcases;
+    this->seed = rand();
 };
 
-void TestCase::ChangeSeed(unsigned seed) {
+TestCase& TestCase::SetSeed(const unsigned& seed) {
     this->seed = seed;
     is_computed = false;
     input = "";
+    return *this;
+}
+
+TestCase& TestCase::SetType(const TestType& type) {
+    this->type = type;
+    return *this;
 }
 
 bool TestCase::operator<(const TestCase &rhs) const {
@@ -130,7 +146,7 @@ void TestCase::FailDebug() {
 class TestArchive {
   public:
     static TestArchive &GetSingleton();
-    void AddTest(TestCase testcase);
+    TestCase& AddTest(TestCase testcase);
     void Run();
     void SetTestsLocation(const std::string &path);
     void SetArchiveOption(const bool option);
@@ -169,8 +185,10 @@ TestArchive &TestArchive::GetSingleton() {
     return singleton;
 }
 
-void TestArchive::AddTest(TestCase testcase) {
+TestCase& TestArchive::AddTest(TestCase testcase) {
     testcases.push_back(testcase);
+    // bad practice
+    return testcases.back();
 }
 
 void TestArchive::SetTestsLocation(const std::string &tests_location) {
@@ -222,7 +240,6 @@ void TestArchive::Run() {
 void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
 while (num_runs--) {
     for (auto testcase : testcases) {
-        testcase.ChangeSeed(rand());
         EggResult official_result = debug_eggecutor.Run(official_source, testcase.GetInput());
         for (auto itr : other_sources) {
             EggResult other_result = debug_eggecutor.Run(itr, testcase.GetInput());
@@ -233,10 +250,14 @@ while (num_runs--) {
                 cerr << "Run against " << official_result.source << '\n';
                 cerr << "Generated by\n";
                 testcase.FailDebug();
+                cerr << "Expected|" << official_result.stdout << "|\n";
+                cerr << "Got|" << other_result.stdout << "|\n";
                 std::exit(0);
             }
         }
+        testcase.SetSeed(rand());
     }
+    srand(time(NULL));
 }
 }
 }  // namespace tumbletest
