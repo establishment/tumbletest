@@ -14,7 +14,6 @@ pair<int, int> Random() {
 };
 
 int main() {
-    
     SetOfficialSource("ab.cpp");
     SetTestsLocation("tests/ab_tests/");
 
@@ -23,6 +22,7 @@ int main() {
 //    }
 
     addTest(Stringify(Random()));
+
     /*
     addTest(Stringify(Random())).setSeed(123).setType(FinalTest);
     addTest(Stringify(Random()));
