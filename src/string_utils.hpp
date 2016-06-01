@@ -3,11 +3,15 @@
 #include <string>
 
 namespace std {
-inline std::string to_string(const std::string t) {
+inline std::string to_string(const std::string& t) {
     return t;
 }
 
-inline std::string to_string(const char *t) {
+inline std::string to_string(const char& c) {
+    return std::string(new char(c));
+}
+
+inline std::string to_string(const char* t) {
     std::string result;
     while (*t) {
         result += *t;
