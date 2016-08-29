@@ -3,13 +3,8 @@
 #include "logging.hpp"
 #include "os.hpp"
 
-#include <ctime>
-
-#include <set>
 #include <map>
-
-
-using std::cerr;
+#include <string>
 
 namespace tumbletest {
 

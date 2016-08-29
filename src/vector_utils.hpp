@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <ostream>
+#include <string>
+#include <vector>
 
 template<typename T>
 std::vector<T> operator+(const std::vector<T>& lhs, const std::vector<T>& rhs) {

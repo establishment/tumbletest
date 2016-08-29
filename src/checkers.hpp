@@ -13,7 +13,6 @@ namespace tumbletest {
  * Checkers for problems.
  * used for validating if output is good or not.
  */
-
 class Checker {
   public:
     bool is_function;

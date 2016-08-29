@@ -1,11 +1,12 @@
 #pragma once
 
-#include "test_archive.hpp"
+#include "test_archive.hpp" // header include
 
-#include "os.hpp"
 #include "logging.hpp"
+#include "os.hpp"
 #include "string_utils.hpp"
 
+#include <algorithm>
 #include <functional>
 #include <vector>
 #include <string>

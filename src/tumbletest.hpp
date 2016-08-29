@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include "test_archive.hpp"
 #include "macros.hpp"
+#include "test_archive.hpp"
 
 void RunTumbletest() {
     tumbletest::test_archive.Run();
