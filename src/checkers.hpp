@@ -21,13 +21,15 @@ class Checker {
     Path checker_path;
 
     Checker(const std::function<bool(const std::string& in, const std::string& ok, const std::string& out)>& function)
-        : is_function(true), function(function), checker_path("/dev/null") { }
+            : is_function(true), function(function), checker_path("/dev/null") { }
 
-    Checker(const Path& path) 
-        : is_function(false), 
-        function([=](const std::string&, const std::string, const std::string&) -> bool { 
-                Error("function for checker is not set."); return false; }), 
-        checker_path(path) { }
+    Checker(const Path& path)
+            : is_function(false),
+              function([=](const std::string&, const std::string, const std::string&) -> bool {
+                  Error("function for checker is not set.");
+                  return false;
+              }),
+              checker_path(path) { }
 
     bool Accepted(const std::string& in, const std::string& ok, const std::string& out) {
         if (is_function) {
@@ -43,29 +45,29 @@ class Checker {
 // TODO(@velea) add checkers for double
 
 Checker default_checker = Checker(
-        [](const std::string &in, const std::string &ok, const std::string &out) -> bool {
-        std::stringstream a;
-        std::stringstream b;
-        a << ok;
-        b << out;
-        std::string A, B;
+        [](const std::string& in, const std::string& ok, const std::string& out) -> bool {
+            std::stringstream a;
+            std::stringstream b;
+            a << ok;
+            b << out;
+            std::string A, B;
 
-        while (a >> A) {
+            while (a >> A) {
+                if (b >> B) {
+                } else {
+                    return false;
+                }
+
+                if (A != B) {
+                    return false;
+                }
+            }
+
             if (b >> B) {
-            } else {
                 return false;
             }
 
-            if (A != B) {
-                return false;
-            }
-        }
-
-        if (b >> B) {
-            return false;
-        }
-
-        return true;
-    });
+            return true;
+        });
 
 }  // namespace tumbletest

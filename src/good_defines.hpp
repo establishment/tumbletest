@@ -4,7 +4,7 @@
     ClassName& operator=(const ClassName&) = default;\
 \
     ClassName(ClassName&&) = default;\
-    ClassName& operator=(ClassName&&) = default;    
+    ClassName& operator=(ClassName&&) = default;
 
 #define MakeMoveOnly(ClassName)\
   public:\

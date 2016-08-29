@@ -23,7 +23,7 @@ enum TestType {
 class TestCase {
   public:
     static void AddSeedFunction(std::function<void(const unsigned&)> function);
- 
+
   protected:
     // user added seed functions
     static std::vector<std::function<void(unsigned)> > seed_functions;
@@ -35,23 +35,29 @@ class TestCase {
     TestCase(std::function<std::string()> function, const std::string& function_call_string);
 
     virtual ~TestCase() = default;
-    
+
     // user interaction
     TestCase& Seed(const unsigned& seed);
+
     TestCase& Type(const TestType& type);
-    
+
     // backwards compatibility
     TestCase& SetSeed(const unsigned& seed);
+
     TestCase& SetType(const TestType& type);
 
     // sort by type, and in case of equality, based on the time it was inserted
-    bool operator<(const TestCase &rhs) const;
+    bool operator<(const TestCase& rhs) const;
 
     // use
     std::string Details(bool show_seed);
+
     std::string DetailsWithoutSeed();
+
     std::string DetailsWithSeed();
+
     const std::string& Input();
+
     std::string Input(const unsigned& seed);
 
     const TestType& Type();
@@ -75,12 +81,13 @@ class TestCase {
  * Generates ok files and checks if 2 or more sources are correct
  */
 class TestArchive {
-    PermanentSingleton(TestArchive)
+  PermanentSingleton(TestArchive)
 
   public:
     TestCase& AddTest(TestCase testcase);
+
     void Run();
-    
+
     // for debug purpose
     void TestSources(int num_runs, std::vector<Path> other_sources);
 
@@ -88,7 +95,9 @@ class TestArchive {
  * Set stuff required for the generator
  */
     void TestsLocation(const std::string& path);
+
     void ArchiveOption(const bool option);
+
     void OfficialSource(const std::string& source);
 
   private:

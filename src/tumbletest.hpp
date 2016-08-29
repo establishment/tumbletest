@@ -10,7 +10,7 @@ void RunTumbletest() {
     tumbletest::test_archive.Run();
 }
 
-void SetTestsLocation(const std::string &location) {
+void SetTestsLocation(const std::string& location) {
     tumbletest::test_archive.TestsLocation(location);
 }
 

@@ -32,7 +32,7 @@ std::vector<T>& operator+=(std::vector<T>& lhs, const T& rhs) {
 
 template<typename T>
 std::ostream& operator<<(std::ostream& cout, std::vector<T>& rhs) {
-    for (int i = 0; i < int(rhs.size()); i += 1) {
+    for (int i = 0 ; i < int(rhs.size()) ; i += 1) {
         if (i != 0) {
             cout << ' ';
         }
@@ -43,7 +43,7 @@ std::ostream& operator<<(std::ostream& cout, std::vector<T>& rhs) {
 
 template<typename T>
 std::ostream& operator<<(std::ostream& cout, std::vector<std::vector<T>>& rhs) {
-    for (int i = 0; i < int(rhs.size()); i += 1) {
+    for (int i = 0 ; i < int(rhs.size()) ; i += 1) {
         if (i != 0) {
             cout << '\n';
         }

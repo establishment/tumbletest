@@ -18,9 +18,14 @@ TumbletestCache& tumbletest_cache = TumbletestCache::GetSingleton(); // singleto
 /*
  * Random operators for path to work well with std::string
  */
-std::string operator+(const std::string& lhs, const Path& rhs) { return lhs + rhs.to_string(); } 
-std::string operator+(const Path& lhs, const std::string& rhs) { return lhs.to_string() + rhs; } 
-std::ostream& operator<<(std::ostream& out, const Path& rhs) { out << rhs.to_string(); return out; }
+std::string operator+(const std::string& lhs, const Path& rhs) { return lhs + rhs.to_string(); }
+
+std::string operator+(const Path& lhs, const std::string& rhs) { return lhs.to_string() + rhs; }
+
+std::ostream& operator<<(std::ostream& out, const Path& rhs) {
+    out << rhs.to_string();
+    return out;
+}
 
 /*
  * Run path for the binary
@@ -52,7 +57,7 @@ std::string Path::GetAbsolutePath(const std::string& current_path) const {
  */
 std::string Path::File() const {
     auto position = absolute_path.find_last_of("/");
-    return absolute_path.substr(position + 1, absolute_path.size() - position);   
+    return absolute_path.substr(position + 1, absolute_path.size() - position);
 }
 
 std::string Path::Folder() const {
@@ -69,7 +74,7 @@ std::string Path::Extension() const {
 std::string Path::ExtensionLess() const {
     auto file = File();
     auto position = file.find(".");
-    return file.substr(0, position);   
+    return file.substr(0, position);
 }
 
 /*
@@ -83,7 +88,7 @@ std::string Path::md5() const {
 
 OS::OS() { }
 
-std::string OS::RunBashCommand(const char *cmd) {
+std::string OS::RunBashCommand(const char* cmd) {
     std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
     if (!pipe) return "ERROR";
     char buffer[128];
@@ -101,7 +106,7 @@ std::string OS::RunBashCommand(const std::string cmd) {
 
 std::string OS::RunBashCommand(std::vector<std::string> cmds) {
     std::string cmd = "";
-    for (std::string &itr : cmds) {
+    for (std::string& itr : cmds) {
         cmd += itr;
         cmd += ';';
     }
@@ -122,7 +127,7 @@ void OS::CreateArchive(std::vector<Path> files, Path archive) {
 
     std::string files_to_zip = "";
     for (auto file_path : files) {
-        files_to_zip  += " " + file_path;
+        files_to_zip += " " + file_path;
     }
 
     RunBashCommand(zip_command + files_to_zip);
@@ -148,7 +153,7 @@ std::string OS::ReadFile(Path file) {
 
         fin.seekg(0, fin.beg);
 
-        fin.read(&file_information[0], file_information.size());
+        fin.read(& file_information[0], file_information.size());
         fin.close();
     } else {
         Error("Error while reading.");
@@ -157,7 +162,7 @@ std::string OS::ReadFile(Path file) {
     return file_information;
 }
 
-void OS::WriteFile(Path file, const std::string &content) {
+void OS::WriteFile(Path file, const std::string& content) {
     std::ofstream fout(file);
     fout << content;
     fout.close();
@@ -186,5 +191,5 @@ void TumbletestCache::ClearTmp() {
  * std::to_string for Path
  */
 namespace std {
-    string to_string(const tumbletest::Path& path) { return path.to_string(); }
+string to_string(const tumbletest::Path& path) { return path.to_string(); }
 }  // namespace std

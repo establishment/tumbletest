@@ -17,8 +17,8 @@ int TestCase::added_testcases = 0;
 
 TestCase::TestCase(std::function<std::string()> function, const std::string& function_call_string)
         : type(TestType::FINAL_TEST), function(function), seed(0),
-        initial_test_number(added_testcases++), function_call_string(function_call_string),
-        is_computed(false), input("") {
+          initial_test_number(added_testcases++), function_call_string(function_call_string),
+          is_computed(false), input("") {
     this->seed = rand();
 };
 
@@ -26,12 +26,12 @@ TestCase& TestCase::Seed(const unsigned& seed) {
     this->seed = seed;
     is_computed = false;
     input = "";
-    return *this;
+    return * this;
 }
 
 TestCase& TestCase::Type(const TestType& type) {
     this->type = type;
-    return *this;
+    return * this;
 }
 
 
@@ -42,15 +42,15 @@ TestCase& TestCase::SetSeed(const unsigned& seed) {
 
 TestCase& TestCase::SetType(const TestType& type) {
     return this->Type(type);
-}    
+}
 
-bool TestCase::operator<(const TestCase &rhs) const {
+bool TestCase::operator<(const TestCase& rhs) const {
     return type < rhs.type;
 }
 
 const std::string& TestCase::Input() {
     if (not is_computed) {
-        for (auto &itr : seed_functions) {
+        for (auto& itr : seed_functions) {
             itr(this->seed);
         }
 
@@ -65,17 +65,17 @@ std::string TestCase::Input(const unsigned& seed) {
     for (auto& itr : TestCase::seed_functions) {
         itr(seed);
     }
- 
+
     return function();
 }
 
 
 std::string TestCase::Details(bool show_seed) {
     return StrCat(
-                "Type:", "\t", this->type, "\n"
-                "#", "\t", this->initial_test_number, "\n",
-                "Command:", "\t", this->function_call_string, "\n",
-                (show_seed) ? "Seed:\t" + std::to_string(this->seed) : "");
+            "Type:", "\t", this->type, "\n"
+                    "#", "\t", this->initial_test_number, "\n",
+            "Command:", "\t", this->function_call_string, "\n",
+            (show_seed) ? "Seed:\t" + std::to_string(this->seed) : "");
 }
 
 std::string TestCase::DetailsWithoutSeed() {
@@ -102,7 +102,7 @@ TestCase& TestArchive::AddTest(TestCase testcase) {
     return testcases.back();
 }
 
-void TestArchive::TestsLocation(const std::string &tests_location) {
+void TestArchive::TestsLocation(const std::string& tests_location) {
     this->tests_location = Path(tests_location);
 }
 
@@ -110,7 +110,7 @@ void TestArchive::ArchiveOption(bool option) {
     this->archive_tests = option;
 }
 
-void TestArchive::OfficialSource(const std::string &source) {
+void TestArchive::OfficialSource(const std::string& source) {
     this->official_source = Path(source);
 }
 
@@ -159,12 +159,12 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
                 if (not checker.Accepted(official_result.stdin, official_result.stdout, other_result.stdout)) {
 
                     std::string error_message = StrCat(
-                            "TestSources evaluation failed\n" 
-                            "Found a problem with source\n", 
+                            "TestSources evaluation failed\n"
+                                    "Found a problem with source\n",
                             ">", other_result.source, "\n"
-                            "<", official_result.source, "\n"
-                            "Test information -------\n",
-                            testcase.DetailsWithoutSeed(),"\n",
+                                    "<", official_result.source, "\n"
+                                    "Test information -------\n",
+                            testcase.DetailsWithoutSeed(), "\n",
                             "Input Ok and Output have been written to /tumbletest/{in,ok,out}.txt");
 
                     os.WriteFile(Path::default_path + "/tumbletest/in.txt", official_result.stdin);
