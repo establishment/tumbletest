@@ -11,11 +11,11 @@ void RunTumbletest() {
 }
 
 void SetTestsLocation(const std::string &location) {
-    tumbletest::test_archive.SetTestsLocation(location);
+    tumbletest::test_archive.TestsLocation(location);
 }
 
 void SetOfficialSource(std::string source) {
-    tumbletest::test_archive.SetOfficialSource(source);
+    tumbletest::test_archive.OfficialSource(source);
 }
 
 void TestSources(std::string source) {
@@ -26,18 +26,18 @@ void TestSources(int runs, std::string source) {
     tumbletest::test_archive.TestSources(runs, {tumbletest::Path(source)});
 }
 
-void TestSources(std::vector<std::string> _sources) {
+void TestSources(const std::vector<std::string>& _sources) {
     std::vector<tumbletest::Path> sources = {};
-    for (auto& itr : _sources) {
+    for (const std::string& itr : _sources) {
         sources.push_back(tumbletest::Path(itr));
     }
 
     tumbletest::test_archive.TestSources(100, sources);
 }
 
-void TestSources(int runs, std::vector<std::string> _sources) {
+void TestSources(int runs, const std::vector<std::string>& _sources) {
     std::vector<tumbletest::Path> sources = {};
-    for (auto& itr : _sources) {
+    for (const std::string& itr : _sources) {
         sources.push_back(tumbletest::Path(itr));
     }
 

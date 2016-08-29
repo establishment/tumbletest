@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <string>
 #include <ostream>
@@ -13,6 +15,10 @@ std::vector<T> operator+(const std::vector<T>& lhs, const std::vector<T>& rhs) {
 
 template<typename T>
 std::vector<T>& operator+=(std::vector<T>& lhs, const std::vector<T>& rhs) {
+    if (lhs.size() + rhs.size() > lhs.capacity()) {
+        lhs.resize(2 * (lhs.size() + rhs.size()));
+    }
+
     lhs.insert(lhs.end(), rhs.begin(), rhs.end());
     return lhs;
 }

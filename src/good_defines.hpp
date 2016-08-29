@@ -22,4 +22,4 @@
     }\
     MakeMoveOnly(ClassName)\
   private:\
-    ClassName() = default;
+    ClassName();
