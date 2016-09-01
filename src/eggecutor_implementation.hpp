@@ -93,7 +93,20 @@ EggResult Eggecutor::Run(const Path& source, const std::string& input_data) cons
 
 
 ExecutionRunProfile Eggecutor::ExecuteCommand(const std::string& command) {
-    auto bash_output = os.RunBashCommand("(time -p " + command + ") 2>&1" + "; echo \"exit $?\"");
+    std::string bash_output = "";
+
+    #ifdef __APPLE__
+        auto exec_command = "(time -p " + command + ") 2>&1" + "; echo \"exit $?\"";
+        bash_output = os.RunBashCommand(exec_command);
+    #elif __linux__ 
+        auto tmp_file = os.TmpFile();
+        auto exec_command = StrCat("time -p -o ", tmp_file, " ", command, "; echo exit $? >>", tmp_file);
+        os.RunBashCommand(exec_command);
+        bash_output = os.ReadFile(tmp_file);
+    #else
+        #error "gtfo windows"
+    #endif
+   
     auto lines = Split(bash_output, '\n');
     auto GetValueAfterTab = [](const std::string& txt) -> double {
         int position = txt.find(" ");

@@ -4,6 +4,9 @@
 
 #include "logging.hpp"
 
+#include <unistd.h>
+#include <cstring>
+
 #include <fstream>
 #include <string>
 #include <vector>
@@ -81,9 +84,19 @@ std::string Path::ExtensionLess() const {
  * md5 checksum of a file. Only the checksum.
  */
 std::string Path::md5() const {
-    auto md5 = os.RunBashCommand("md5 " + absolute_path);
-    auto position = md5.find_last_of("=");
-    return md5.substr(position + 2, md5.size() - position - 3);
+    std::string result = "";
+    #ifdef __APPLE__
+        auto md5 = os.RunBashCommand("md5 " + absolute_path);
+        auto position = md5.find_last_of("=");
+        result = md5.substr(position + 2, md5.size() - position - 3);
+    #elif __linux__ 
+        auto md5sum = os.RunBashCommand("md5sum " + absolute_path);
+        result = md5sum.substr(0, 32);
+    #else
+        #error "gtfo windows"
+    #endif
+
+    return result;
 }
 
 OS::OS() { }
@@ -171,9 +184,17 @@ void OS::WriteFile(Path file, const std::string& content) {
 }
 
 Path OS::TmpFile() {
-    char file[] = "XXXXXX";
-    mktemp(file);
-    return Path::default_path + "/tumbletest/tmp/" + std::string(file);
+    std::string file_str = StrCat(Path::default_path, "/tumbletest/tmp/", "XXXXXX");
+    char* file = strdup(file_str.c_str());
+    auto descriptor = mkstemp(file);
+    
+    if (descriptor == -1) {
+        Error("Could not create file!");
+    }
+
+    close(descriptor);
+
+    return std::string(file);
 }
 
 TumbletestCache::TumbletestCache() {

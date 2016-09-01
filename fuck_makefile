@@ -4,7 +4,7 @@
 #so you the user can just #include <tumbletest>
 
 find src/*.hpp -exec cp {} /usr/local/include \;
-cp src/tumbletest.hpp /usr/local/include/tumbletest
-cp src/string_utils.hpp /usr/local/include/string_utils
-cp src/vector_utils.hpp /usr/local/include/vector_utils
+cp src/tumbletest /usr/local/include/tumbletest
+cp src/string_utils /usr/local/include/string_utils
+cp src/vector_utils /usr/local/include/vector_utils
 
