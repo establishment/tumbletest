@@ -56,9 +56,9 @@ class TestCase {
 
     const std::string& Input();
 
-    std::string Input(const unsigned& seed);
+    std::string Input(const unsigned& seed) const;
 
-    const TestType& Type();
+    const TestType& Type() const;
 
   protected:
     TestType type;

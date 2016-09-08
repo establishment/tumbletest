@@ -1,9 +1,10 @@
-#include <tumbletest>
+#include "../src/tumbletest"
 using namespace std;
 
 int main() {
     SetOfficialSource("a1.cpp");
+    SetTestsLocation("tests/");
     addTest("10 20\n");
-    TestSources(100, "a2.cpp");
+    RunTumbletest();
     return 0;   
 }

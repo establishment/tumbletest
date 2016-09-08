@@ -62,7 +62,7 @@ const std::string& TestCase::Input() {
     return input;
 }
 
-std::string TestCase::Input(const unsigned& seed) {
+std::string TestCase::Input(const unsigned& seed) const {
     for (auto& itr : TestCase::seed_functions) {
         itr(seed);
     }
@@ -85,6 +85,10 @@ std::string TestCase::DetailsWithoutSeed() {
 
 std::string TestCase::DetailsWithSeed() {
     return this->Details(true);
+}
+
+const TestType& TestCase::Type() const {
+    return this->type;
 }
 
 TestArchive& test_archive = TestArchive::GetSingleton();
@@ -116,7 +120,6 @@ void TestArchive::OfficialSource(const std::string& source) {
 }
 
 void TestArchive::Run() {
-/*
     stable_sort(testcases.begin(), testcases.end());
     int test_number = 0;
     os.RunBashCommand("mkdir -p " + tests_location);
@@ -135,7 +138,7 @@ void TestArchive::Run() {
 
         test_number += 1;
     }
-*/
+
 //  archive feature not available at the moment
 //    if (archive_tests) {
 //        for (auto test_type : {EXAMPLE, PRETEST, FINAL_TEST}) {
