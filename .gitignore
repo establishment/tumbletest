@@ -1,3 +1,4 @@
-srctests
 .idea
 .DS_STORE
+testing/tests/
+testing/tumbletest/

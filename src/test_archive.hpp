@@ -8,6 +8,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace tumbletest {
 
@@ -28,6 +29,8 @@ class TestCase {
 
     // used for counting how many testcases were added
     static int added_testcases;
+
+    static std::map<int, int> hash_counter;
 
   public:
     TestCase(std::function<std::string()> function, const std::string& function_call_string);
