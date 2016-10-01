@@ -22,17 +22,20 @@ void Log(const std::string& file, const std::string& line, const std::string& me
 
 template<>
 void Log<LogType::INFO>(const std::string& file, const std::string& line, const std::string& message) {
-    std::cerr << "[INFO]" << file << ":" << line << " > " << message << '\n';
+    std::string _file = file.substr(file.find_last_of("/"));
+    std::cerr << "[INFO]" << _file << ":" << line << "\t> " << message << '\n';
 }
 
 template<>
 void Log<LogType::WARNING>(const std::string& file, const std::string& line, const std::string& message) {
-    std::cerr << "[WARNING]" << file << ":" << line << " > " << message << '\n';
+    std::string _file = file.substr(file.find_last_of("/"));
+    std::cerr << "[WARNING]" << _file << ":" << line << "\t> " << message << '\n';
 }
 
 template<>
 void Log<LogType::ERROR>(const std::string& file, const std::string& line, const std::string& message) {
-    std::cerr << "[ERROR]" << file << ":" << line << " > " << message << '\n';
+    std::string _file = file.substr(file.find_last_of("/"));
+    std::cerr << "[ERROR]" << _file << ":" << line << "\t> " << message << '\n';
     exit(0);
 }
 

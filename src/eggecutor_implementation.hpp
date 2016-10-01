@@ -75,7 +75,9 @@ EggResult Eggecutor::Run(const Path& source, const std::string& input_data) cons
     auto run_profile = ExecuteCommand(run_command);
 
     if (profile.show_status) {
-        Info("Finished running.");
+        char buff[32];
+        snprintf(buff, 32, "%.3lf", run_profile.real);
+        Info("Finished running in ", buff, "\tExit code:", run_profile.exit_code);
     }
 
     std::string output = os.ReadFile(stdout);
