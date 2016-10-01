@@ -1,6 +1,7 @@
 #pragma once
 
 #include "string_utils.hpp"
+#include "text_modifiers.hpp"
 
 #include <iostream>
 #include <string>
@@ -23,7 +24,7 @@ void Log(const std::string& file, const std::string& line, const std::string& me
 template<>
 void Log<LogType::INFO>(const std::string& file, const std::string& line, const std::string& message) {
     std::string _file = file.substr(file.find_last_of("/"));
-    std::cerr << "[INFO]" << _file << ":" << line << "\t> " << message << '\n';
+    std::cerr << Colored(Color::dark_gray, "[INFO]") << _file << ":" << line << "\t> " << message << '\n';
 }
 
 template<>

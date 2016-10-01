@@ -69,7 +69,7 @@ EggResult Eggecutor::Run(const Path& source, const std::string& input_data) cons
             "2>", stderr);
 
     if (profile.show_status) {
-        Info("Run source:\t" + source.to_string());
+        Info("Run source:\t", Colored(Color::magenta, source.File()));
     }
 
     auto run_profile = ExecuteCommand(run_command);
@@ -77,7 +77,7 @@ EggResult Eggecutor::Run(const Path& source, const std::string& input_data) cons
     if (profile.show_status) {
         char buff[32];
         snprintf(buff, 32, "%.3lf", run_profile.real);
-        Info("Finished running in ", buff, "\tExit code:", run_profile.exit_code);
+        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:", Colored(Color::green, StrCat(run_profile.exit_code)));
     }
 
     std::string output = os.ReadFile(stdout);
