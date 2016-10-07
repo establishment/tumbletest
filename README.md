@@ -16,23 +16,38 @@ It can generate different archives with the input files that are examples, prete
 ####Usage
 
 ```
-#include "tumbletest.hpp"
+#include <tumbletest>
+#include <string_utils>
+#include <vector_utils>
 
-...
+#include <generator_utils>
 
-string RandomTest(int max_value) {
-  return to_string(rand() % max_value) + " " + to_string(rand() % max_value);
-};
+#include <algorithm>
+#include <iostream>
+#include <string>
+using namespace std;
+
+string Random(int max_val=1e9) {
+    return StrCat(Rand(1, max_val + 1), ' ', Rand(1, max_val + 1), '\n');
+}
 
 int main() {
-  SetOfficialSource("aplusb.cpp");
-  SetTestsLocation("aplusb_tests/");
-  
-  addTest(RandomTest(10)).SetType(EXAMPLE);
-  addTest(RandomTest(100)).SetType(PRETEST).SetSeed(123);
-  addTest(RandomTest(1e9)).SetType(FINAL_TEST);
-  
-  RunTumbletest();
-  return 0;
+/// official source is "official.cpp"
+/// default tests location is "/tests"
+/// use these functions to change the defaults
+/// SetOfficialSource(path);
+/// SetTestsLocation(path);
+
+    addTest(Random(10));
+    addTest(Random(20)).Seed(1000);  /// this test will be run with seed 1000 every time
+    addTest(Random());
+    RunTumbletest();    /// creates testcases
+    
+/// to test other sources for bugs / strange behaviours
+/// runs all testcases 200 times with different seeds.
+/// in case one of them is wrong, prints the .in .ok .out
+/// and the seed to reproduce the test
+/// TestSources(200, "other_cool_implementation.cpp");
+    return 0;
 }
 ```
