@@ -47,6 +47,8 @@ class TestCase {
 
     TestCase& SetType(const TestType& type);
 
+    TestCase& Example();
+
     // sort by type, and in case of equality, based on the time it was inserted
     bool operator<(const TestCase& rhs) const;
 
@@ -113,7 +115,7 @@ class TestArchive {
     Eggecutor deploy_eggecutor; // mode used for Run
     Eggecutor debug_eggecutor; // mode used for TestSources
 
-    Checker checker; // checker used for the problem
+    Path checker; // checker used for the problem
 };
 
 }  // namespace tumbletest

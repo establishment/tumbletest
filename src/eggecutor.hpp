@@ -1,5 +1,6 @@
 #pragma once
 
+#include "checkers.hpp"
 #include "logging.hpp"
 #include "os.hpp"
 
@@ -132,6 +133,9 @@ class Eggecutor {
     Eggecutor(const EggecutorProfile& profile) : profile(profile) { }
 
     EggResult Run(const Path& source, const std::string& input_data) const;
+    std::pair<EggResult, CheckerResult> RunInteractive(const Path& source, const Path& checker, const std::string& input_data) const;
+    std::pair<EggResult, CheckerResult> RunChecker(const Path& checker,
+            const std::string& in, const std::string& ok, const std::string& out) const;
 
   private:
     const EggecutorProfile profile;

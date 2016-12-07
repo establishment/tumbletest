@@ -102,6 +102,7 @@ std::string Path::md5() const {
 OS::OS() { }
 
 std::string OS::RunBashCommand(const char* cmd) {
+//    Info("Runbashcommand: ", cmd);
     FILE* pipe(popen(cmd, "r"));
     if (!pipe) return "ERROR";
     char buffer[128];

@@ -21,31 +21,38 @@ enum LogType {
 template<int>
 void Log(const std::string& file, const std::string& line, const std::string& message);
 
+std::string Allign(std::string text, int size) {
+    while ((int)text.size() < size) {
+        text += ' ';
+    }
+    return text;
+}
+
 template<>
 void Log<LogType::INFO>(const std::string& file, const std::string& line, const std::string& message) {
     std::string _file = file;
-    if (file.find_last_of("/") == std::string::npos) {
+    if (file.find_last_of("/") != std::string::npos) {
         _file = file.substr(file.find_last_of("/"));
     }
-    std::cerr << Colored(Color::dark_gray, "[INFO]") << _file << ":" << line << "\t> " << message << '\n';
+    std::cerr << Allign(StrCat(Colored(Color::dark_gray, "[INFO]"), _file, ":", line), 50 + 12) << "> " << message << '\n';
 }
 
 template<>
 void Log<LogType::WARNING>(const std::string& file, const std::string& line, const std::string& message) {
     std::string _file = file;
-    if (file.find_last_of("/") == std::string::npos) {
+    if (file.find_last_of("/") != std::string::npos) {
         _file = file.substr(file.find_last_of("/"));
     }
-    std::cerr << "[WARNING]" << _file << ":" << line << "\t> " << message << '\n';
+    std::cerr << Allign(StrCat(Colored(Color::yellow, "[WARNING]"), _file, ":", line), 45 + 12) << "> " << message << '\n';
 }
 
 template<>
 void Log<LogType::ERROR>(const std::string& file, const std::string& line, const std::string& message) {
     std::string _file = file;
-    if (file.find_last_of("/") == std::string::npos) {
+    if (file.find_last_of("/") != std::string::npos) {
         _file = file.substr(file.find_last_of("/"));
     }
-    std::cerr << "[ERROR]" << _file << ":" << line << "\t> " << message << '\n';
+    std::cerr << Allign(StrCat(Colored(Color::red, "[ERROR]"), _file, ":", line), 50 + 12) << "> " << message << '\n';
     exit(0);
 }
 

@@ -13,6 +13,29 @@
 
 namespace tumbletest {
 
+void ReplaceInclude(const Path& file, const std::string& header) {
+    std::string content = os.ReadFile(file);
+    for (std::string word : {StrCat("#include <",header,">"), StrCat("#include<",header,">")}) {
+        auto pos = content.find(word);
+        if (pos != std::string::npos) {
+            std::string include_content = os.ReadFile(StrCat("/usr/local/include/", header));
+            content.replace(pos, word.size(), include_content);
+            os.WriteFile("standalone_checker.cpp", content);
+            break;
+        }
+    }
+}
+
+void GenerateStandaloneThings(const Path& checker) {
+    // generate checker
+    if (os.ValidFile(checker)) {
+        ReplaceInclude(checker, "interactive");
+        ReplaceInclude(checker, "simple_batch_checker");
+    }
+}
+
+bool is_interactive = false;
+
 std::vector<std::function<void(unsigned)> > TestCase::seed_functions = {srand};
 int TestCase::added_testcases = 0;
 std::map<int, int> TestCase::hash_counter = {};
@@ -58,6 +81,10 @@ TestCase& TestCase::SetSeed(const unsigned& seed) {
 
 TestCase& TestCase::SetType(const TestType& type) {
     return this->Type(type);
+}
+
+TestCase& TestCase::Example() {
+    return this->Type(EXAMPLE);
 }
 
 bool TestCase::operator<(const TestCase& rhs) const {
@@ -114,7 +141,7 @@ TestArchive::TestArchive()
           test_prefix("test-"),
           deploy_eggecutor(EggecutorProfile::Testing(0.0)),
           debug_eggecutor(EggecutorProfile::Debug()),
-          checker(default_checker) { }
+          checker("checker.cpp") { }
 
 TestCase& TestArchive::AddTest(TestCase testcase) {
     testcases.push_back(testcase);
@@ -148,6 +175,7 @@ void TestArchive::Run() {
             continue;
         }
 
+
         Info("[Start] running on test #\t", test_number, "\twith source:\t", official_source.File());
 
         // write input before generating so in case something goes wrong
@@ -155,23 +183,31 @@ void TestArchive::Run() {
         os.WriteFile(tests_location + test_prefix + std::to_string(test_number) + ".in", itr.Input());  
         Info("Computed .in file and wrote it to\t", test_prefix + std::to_string(test_number));
 
-        EggResult test_result = deploy_eggecutor.Run(official_source, itr.Input());
+        if (not is_interactive) {
+            EggResult test_result = deploy_eggecutor.Run(official_source, itr.Input());
 
-        os.WriteFile(tests_location + test_prefix + std::to_string(test_number) + ".ok", test_result.stdout);
+            os.WriteFile(tests_location + test_prefix + std::to_string(test_number) + ".ok", test_result.stdout);
+        } else {
+            auto all_results = deploy_eggecutor.RunInteractive(official_source, checker, itr.Input());
+            if (itr.Type() == EXAMPLE) {
+                os.WriteFile(tests_location + test_prefix + std::to_string(test_number) + ".json", all_results.second.logger);
+            }
+            Info(
+                    "Test:", Colored(Color::blue, StrCat(test_number)), "\t",
+                    "Source:", Colored(Color::blue, official_source.File()), "\t", 
+                    "Checker: ", (all_results.second.passed ? Colored(Color::green, "Passed!") : Colored(Color::red, "Not passed")), "\t", Colored(Color::light_magenta, all_results.second.message));
+        }
 
         test_number += 1;
     }
 
-//  archive feature not available at the moment
-//    if (archive_tests) {
-//        for (auto test_type : {EXAMPLE, PRETEST, FINAL_TEST}) {
-//            files_location.push_back(Path(test_prefix + std::string(test_number) + ".in"));
-//            files_location.push_back(Path(test_prefix + std::string(test_number) + ".ok"));
-//        }
-//    }
+    GenerateStandaloneThings(checker);
 }
 
 void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
+    if (is_interactive) {
+        other_sources.push_back(official_source);
+    }
     stable_sort(testcases.begin(), testcases.end());
     srand(time(NULL));
     int seed = rand();
@@ -185,29 +221,55 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
             Info("Input was written to /tumbletest/in.txt");
             os.WriteFile(Path::default_path + "/tumbletest/in.txt", input);
 
+            if (not is_interactive) {
+                Info("Getting .ok file for test #\t", test_number, "\twith source:\t", official_source.File());
+                EggResult official_result = debug_eggecutor.Run(official_source, input);
 
-            Info("Getting .ok file for test #\t", test_number, "\twith source:\t", official_source.File());
-            EggResult official_result = debug_eggecutor.Run(official_source, input);
+                for (auto itr : other_sources) {
+                    Info("[Start] running on test #\t", test_number, "\twith source:\t", itr.File());
+                    EggResult other_result = debug_eggecutor.Run(itr, testcase.Input(seed));
 
-            for (auto itr : other_sources) {
-                Info("[Start] running on test #\t", test_number, "\twith source:\t", itr.File());
-                EggResult other_result = debug_eggecutor.Run(itr, testcase.Input(seed));
-                if (not checker.Accepted(official_result.stdin, official_result.stdout, other_result.stdout)) {
 
-                    std::string error_message = StrCat(
-                            "TestSources evaluation failed\n"
-                                    "Found a problem with source\n",
-                            ">", other_result.source, "\n"
-                                    "<", official_result.source, "\n"
-                                    "Test information -------\n",
-                            testcase.DetailsWithSeed(), "\n",
-                            "Input Ok and Output have been written to /tumbletest/{in,ok,out}.txt");
+                    auto checker_results = deploy_eggecutor.RunChecker(checker, 
+                            official_result.stdin, official_result.stdout, other_result.stdout);
 
-                    os.WriteFile(Path::default_path + "/tumbletest/in.txt", official_result.stdin);
-                    os.WriteFile(Path::default_path + "/tumbletest/ok.txt", official_result.stdout);
-                    os.WriteFile(Path::default_path + "/tumbletest/out.txt", other_result.stdout);
+                    if (not checker_results.second.passed) {
 
-                    Error(error_message);
+                        std::string error_message = StrCat(
+                                "TestSources evaluation failed\n"
+                                "Found a problem with source\n",
+                                ">", other_result.source, "\n"
+                                "<", official_result.source, "\n"
+                                "Test information -------\n",
+                                testcase.DetailsWithSeed(), "\n",
+                                "Input Ok and Output have been written to /tumbletest/{in,ok,out}.txt");
+
+                        os.WriteFile(Path::default_path + "/tumbletest/in.txt", official_result.stdin);
+                        os.WriteFile(Path::default_path + "/tumbletest/ok.txt", official_result.stdout);
+                        os.WriteFile(Path::default_path + "/tumbletest/out.txt", other_result.stdout);
+
+                        Error(error_message);
+                    }
+                }
+            } else {
+                os.WriteFile(Path::default_path + "/tumbletest/in.txt", input);
+                for (auto itr : other_sources) {
+                    auto all_results = deploy_eggecutor.RunInteractive(itr, checker, input);
+                    Info(
+                            "Test:", Colored(Color::blue, StrCat(test_number)), "\t",
+                            "Seed:", Colored(Color::light_magenta, StrCat(seed)), "\t",
+                            "Source:", Colored(Color::blue, itr.File()), "\t", 
+                            "Checker: ", (all_results.second.passed ? Colored(Color::green, "Passed!") : Colored(Color::red, "Not passed")), "\t", Colored(Color::light_magenta, all_results.second.message));
+                    if (not all_results.second.passed) {
+                        Error("\n", 
+                                "Interactive problem was did not pass\n",
+                                "Source:", itr, "\n",
+                                "Testcase:", test_number, "\n",
+                                "Seed:", seed, "\n",
+                                "Checker message:\"", all_results.second.message, "\"\n",
+                                "Input was written to /tumbletest/in.txt"
+                            );
+                    }
                 }
             }
 

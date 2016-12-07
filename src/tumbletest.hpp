@@ -44,3 +44,6 @@ void TestSources(int runs, const std::vector<std::string>& _sources) {
     tumbletest::test_archive.TestSources(runs, sources);
 }
 
+void Interactive() {
+    tumbletest::is_interactive = true;
+}

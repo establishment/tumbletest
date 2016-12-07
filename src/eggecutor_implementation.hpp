@@ -2,11 +2,12 @@
 
 #include "eggecutor.hpp" // header
 
+#include "checkers.hpp"
 #include "string_utils.hpp"
 
 #include <cmath>
-
 #include <string>
+#include <sstream>
 
 namespace tumbletest {
 
@@ -89,10 +90,127 @@ EggResult Eggecutor::Run(const Path& source, const std::string& input_data) cons
     }
 
     tumbletest_cache.ClearTmp();
-
     return EggResult(source, input_data, output, errors, run_profile);
 }
 
+std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source, const Path& checker, const std::string& input_data) const {
+    Path stdin = os.TmpFile();
+    Path stdout = os.TmpFile();
+    Path stderr = os.TmpFile();
+    Path checker_stderr = os.TmpFile();
+
+    os.WriteFile(stdin, input_data);
+
+    auto language = language_library.objects[source.Extension()];
+    auto checker_lang = language_library.objects[checker.Extension()];
+    if (language == nullptr) {
+        Error(StrCat("Unknown extension for file:\t", source.to_string()));
+    }
+
+    os.RunBashCommand(StrCat("rm ", stdin));
+    os.RunBashCommand(StrCat("rm ", stdout));
+    os.RunBashCommand(StrCat("mkfifo ", stdin));
+    os.RunBashCommand(StrCat("mkfifo ", stdout));
+
+    language->Compile(source);
+    checker_lang->Compile(checker);
+
+    os.WriteFile("input.txt", input_data);
+
+    std::string run_command = StrCat(
+            language->RunCommand(source), " ",
+            "<", stdin, " ", "1>", stdout, " ", "2>", stderr, " & ", 
+            checker_lang->RunCommand(checker), 
+            " 1>", stdin, " <", stdout, " 2>", checker_stderr, " ; wait $! ");
+
+    if (profile.show_status) {
+        Info("Run interactive - source:\t", Colored(Color::magenta, source.File()));
+    }
+
+    auto run_profile = ExecuteCommand(run_command);
+
+    if (profile.show_status) {
+        char buff[32];
+        snprintf(buff, 32, "%.3lf", run_profile.real);
+        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:", Colored(Color::green, StrCat(run_profile.exit_code)));
+    }
+
+    std::string output = "";
+    std::string errors = os.ReadFile(stderr);
+
+    if (run_profile.exit_code != 0) {
+        Error(StrCat("Non zero exit status (", run_profile.exit_code, ")", "\n",
+                     "Source:\t", source));
+    }
+
+    std::string logger = os.ReadFile("logger.txt");
+    std::string results = os.ReadFile("result.txt");
+    
+    os.RunBashCommand("rm logger.txt");
+    os.RunBashCommand("rm result.txt");
+    os.RunBashCommand("rm input.txt");
+ 
+    std::stringstream R(results);
+    bool passed = false;
+    R >> passed;
+    R.get();
+    std::string message;
+    R >> message;
+
+    tumbletest_cache.ClearTmp();
+    return {EggResult(source, input_data, output, errors, run_profile), CheckerResult({passed, message, logger})};
+}
+
+std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker, 
+            const std::string& in, const std::string& ok, const std::string& out) const {
+    Path in_f = os.TmpFile();
+    Path ok_f = os.TmpFile();
+    Path out_f = os.TmpFile();
+
+    os.WriteFile(in_f, in);
+    os.WriteFile(ok_f, ok);
+    os.WriteFile(out_f, out);
+
+    auto language = language_library.objects[checker.Extension()];
+    if (language == nullptr) {
+        Error(StrCat("Unknown extension for file:\t", checker.to_string()));
+    }
+
+    language->Compile(checker);
+    std::string run_command = StrCat(
+            language->RunCommand(checker), " ",
+            in_f, " ", ok_f, " ", out_f);
+
+    if (profile.show_status) {
+        Info("Run checker:\t", Colored(Color::magenta, checker.File()));
+    }
+
+    auto run_profile = ExecuteCommand(run_command);
+
+    if (profile.show_status) {
+        char buff[32];
+        snprintf(buff, 32, "%.3lf", run_profile.real);
+        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:", Colored(Color::green, StrCat(run_profile.exit_code)));
+    }
+
+    if (run_profile.exit_code != 0) {
+        Error(StrCat("Non zero exit status (", run_profile.exit_code, ")", "\n",
+                     "Checker:\t", checker));
+    }
+
+    std::string results = os.ReadFile("result.txt");
+    os.RunBashCommand("rm result.txt");
+
+    std::stringstream R(results);
+    bool passed = false;
+    R >> passed;
+    R.get();
+    std::string message;
+    R >> message;
+
+    tumbletest_cache.ClearTmp();
+    return {EggResult(checker, "", "", "", run_profile), CheckerResult({passed, message, ""})};
+}
 
 ExecutionRunProfile Eggecutor::ExecuteCommand(const std::string& command) {
     std::string bash_output = "";
@@ -124,6 +242,10 @@ ExecutionRunProfile Eggecutor::ExecuteCommand(const std::string& command) {
             int(std::round(GetValueAfterTab(lines[n - 1])))
     );
 }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Programming languages
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // c++
 Path ProgrammingLanguage::CPP::BinaryFile(const Path& source) {
