@@ -179,7 +179,9 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker,
     language->Compile(checker);
     std::string run_command = StrCat(
             language->RunCommand(checker), " ",
-            in_f, " ", ok_f, " ", out_f);
+            "in_file=", in_f," ", 
+            "ok_file=", ok_f, " ", 
+            "out_file=", out_f, " 1>/dev/null 2>/dev/null");
 
     if (profile.show_status) {
         Info("Run checker:\t", Colored(Color::magenta, checker.File()));
