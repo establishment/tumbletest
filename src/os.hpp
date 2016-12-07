@@ -62,27 +62,14 @@ class OS {
 
     void CreateArchive(std::vector<Path> files, Path archive);
 
-    bool ValidFile(Path file);
+    bool ValidFile(const Path& file);
 
-    std::string ReadFile(Path file);
+    std::string ReadFile(const Path& file);
 
-    void WriteFile(Path file, const std::string& content);
-
-    Path TmpFile();
+    void WriteFile(const Path& file, const std::string& content);
 
   PermanentSingleton(OS)
 };
 
-/*
- * Responsible for storing auxiliar data for the process.
- */
-class TumbletestCache {
-  public:
-    void ClearTmp();
-
-  PermanentSingleton(TumbletestCache);
-};
-
+extern OS& os;
 }  // namespace tumbletest
-
-#include "os_implementation.hpp" // include implementation
