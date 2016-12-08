@@ -123,10 +123,6 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source
             checker_lang->RunCommand(checker), 
             " 1>", stdin, " <", stdout, " 2>", checker_stderr, " ; wait $! ");
 
-    if (profile.show_status) {
-        Info("Run interactive - source:\t", Colored(Color::magenta, source.File()));
-    }
-
     auto run_profile = ExecuteCommand(run_command);
 
     if (profile.show_status) {
@@ -137,11 +133,6 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source
 
     std::string output = "";
     std::string errors = os.ReadFile(stderr);
-
-    if (run_profile.exit_code != 0) {
-        Error(StrCat("Non zero exit status (", run_profile.exit_code, ")", "\n",
-                     "Source:\t", source));
-    }
 
     std::string logger = os.ReadFile("logger.txt");
     std::string results = os.ReadFile("result.txt");
@@ -154,8 +145,13 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source
     bool passed = false;
     R >> passed;
     R.get();
-    std::string message;
-    R >> message;
+    char _message[1024];
+    bzero(_message, sizeof(_message));
+    R.read(_message, sizeof(_message) - 1);
+    std::string message(_message);
+    while (message.size() and message.back() == '\n') {
+        message.pop_back();
+    }
 
     tumbletest_cache.ClearTmp();
     return {EggResult(source, input_data, output, errors, run_profile), CheckerResult({passed, message, logger})};
@@ -195,9 +191,8 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker,
         Info("Finished running in ", Colored(Color::green, buff), "\tExit code:", Colored(Color::green, StrCat(run_profile.exit_code)));
     }
 
-    if (run_profile.exit_code != 0) {
-        Error(StrCat("Non zero exit status (", run_profile.exit_code, ")", "\n",
-                     "Checker:\t", checker));
+    if (profile.show_status) {
+        Info("Run interactive - source:\t", Colored(Color::magenta, checker.File()));
     }
 
     std::string results = os.ReadFile("result.txt");
@@ -207,8 +202,13 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker,
     bool passed = false;
     R >> passed;
     R.get();
-    std::string message;
-    R >> message;
+    char _message[1024];
+    bzero(_message, sizeof(_message));
+    R.read(_message, sizeof(_message) - 1);
+    std::string message(_message);
+    while (message.size() and message.back() == '\n') {
+        message.pop_back();
+    }
 
     tumbletest_cache.ClearTmp();
     return {EggResult(checker, "", "", "", run_profile), CheckerResult({passed, message, ""})};

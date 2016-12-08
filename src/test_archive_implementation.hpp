@@ -113,12 +113,12 @@ std::string TestCase::Input(const unsigned& seed) const {
 }
 
 
-std::string TestCase::Details(bool show_seed) {
+std::string TestCase::Details(bool show_seed=true) {
     return StrCat(
-            "Type:", "\t", this->type, "\n"
-                    "test-num(0 based)", "\t", this->initial_test_number, "\n",
-            "Command:", "\t", this->function_call_string, "\n",
-            (show_seed) ? "Seed:\t" + std::to_string(this->seed) : "");
+            "Number:", "\t", this->initial_test_number, "\n",
+            (show_seed) ? StrCat("Seed:\t", this->seed, "\n") : "",
+            "Command:", "\t", this->function_call_string
+            );
 }
 
 std::string TestCase::DetailsWithoutSeed() {
@@ -218,7 +218,7 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
             
             seed -= 1;
             auto input = testcase.Input(seed);
-            Info("Input was written to /tumbletest/in.txt");
+            Info("Input was written to tumbletest/in.txt");
             os.WriteFile(Path::default_path + "/tumbletest/in.txt", input);
 
             if (not is_interactive) {
@@ -238,11 +238,12 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
                         std::string error_message = StrCat(
                                 "TestSources evaluation failed\n"
                                 "Found a problem with source\n",
-                                ">", other_result.source, "\n"
-                                "<", official_result.source, "\n"
+                                ">", other_result.source.File(), "\n"
+                                "<", official_result.source.File(), "\n"
+                                "Checker message:\"", checker_results.second.message, "\"\n",
                                 "Test information -------\n",
                                 testcase.DetailsWithSeed(), "\n",
-                                "Input Ok and Output have been written to /tumbletest/{in,ok,out}.txt");
+                                "Input Ok and Output have been written to tumbletest/{in,ok,out}.txt");
 
                         os.WriteFile(Path::default_path + "/tumbletest/in.txt", official_result.stdin);
                         os.WriteFile(Path::default_path + "/tumbletest/ok.txt", official_result.stdout);
@@ -263,11 +264,10 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
                     if (not all_results.second.passed) {
                         Error("\n", 
                                 "Interactive problem was did not pass\n",
-                                "Source:", itr, "\n",
-                                "Testcase:", test_number, "\n",
-                                "Seed:", seed, "\n",
+                                "Source:", itr.File(), "\n",
+                                testcase.Details(), "\n"
                                 "Checker message:\"", all_results.second.message, "\"\n",
-                                "Input was written to /tumbletest/in.txt"
+                                "Input was written to tumbletest/in.txt"
                             );
                     }
                 }
