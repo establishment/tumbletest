@@ -1,2 +1,4 @@
 #pragma once
-#include "tumbletest.hpp"
+#include <tumbletest_src/tumbletest.hpp>
+#include <tumbletest_src/vector_utils.hpp>
+#include <tumbletest_src/string_utils.hpp>
