@@ -280,7 +280,7 @@ std::string ProgrammingLanguage::CPP::RunCommand(const Path& source) {
 // java
 Path ProgrammingLanguage::Java::BinaryFile(const Path& source) {
     std::string dir = base_binary_path + "/" + source.md5();
-    os.RunBashCommand("mkdir -r " + dir);
+    os.RunBashCommand("mkdir -p " + dir);
     return dir + "/" + source.ExtensionLess();
 }
 
@@ -309,7 +309,7 @@ std::string ProgrammingLanguage::Java::RunCommand(const Path& source) {
 // python
 Path ProgrammingLanguage::Python::BinaryFile(const Path& source) {
     std::string dir = base_binary_path + "/" + source.md5();
-    os.RunBashCommand("mkdir -r " + dir);
+    os.RunBashCommand("mkdir -p " + dir);
     return dir + "/" + source.File();
 }
 
