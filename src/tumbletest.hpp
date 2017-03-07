@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <initializer_list>
 
 #include "macros.hpp"
 #include "test_archive.hpp"
@@ -42,6 +43,24 @@ void TestSources(int runs, const std::vector<std::string>& _sources) {
     }
 
     tumbletest::test_archive.TestSources(runs, sources);
+}
+
+void TestSources(int runs, std::initializer_list<std::string> sl) {
+    std::vector<tumbletest::Path> sources = {};
+    for (auto itr : sl) {
+        sources.push_back(tumbletest::Path(itr));
+    }
+
+    tumbletest::test_archive.TestSources(runs, sources);
+}
+
+void TestSources(std::initializer_list<std::string> sl) {
+    std::vector<tumbletest::Path> sources = {};
+    for (auto itr : sl) {
+        sources.push_back(tumbletest::Path(itr));
+    }
+
+    tumbletest::test_archive.TestSources(100, sources);
 }
 
 void Interactive() {
