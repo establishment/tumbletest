@@ -6,9 +6,9 @@
 #include "os.hpp"
 
 #include <functional>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 namespace tumbletest {
 
@@ -25,7 +25,7 @@ class TestCase {
 
   protected:
     // user added seed functions
-    static std::vector<std::function<void(unsigned)> > seed_functions;
+    static std::vector<std::function<void(unsigned)>> seed_functions;
 
     // used for counting how many testcases were added
     static int added_testcases;
@@ -84,19 +84,18 @@ class TestCase {
  * Generates ok files and checks if 2 or more sources are correct
  */
 class TestArchive {
-  PermanentSingleton(TestArchive)
+    PermanentSingleton(TestArchive)
 
-  public:
-    TestCase& AddTest(TestCase testcase);
+        public : TestCase& AddTest(TestCase testcase);
 
     void Run();
 
     // for debug purpose
     void TestSources(int num_runs, std::vector<Path> other_sources);
 
-/*
- * Set stuff required for the generator
- */
+    /*
+     * Set stuff required for the generator
+     */
     void TestsLocation(const std::string& path);
 
     void ArchiveOption(const bool option);
@@ -108,14 +107,14 @@ class TestArchive {
 
     Path official_source;
     Path tests_location;
-    std::string test_prefix; // test-$i or sth
+    std::string test_prefix;  // test-$i or sth
 
-    bool archive_tests; // create a archive with all testcases after generating .ok files or not
+    bool archive_tests;  // create a archive with all testcases after generating .ok files or not
 
-    Eggecutor deploy_eggecutor; // mode used for Run
-    Eggecutor debug_eggecutor; // mode used for TestSources
+    Eggecutor deploy_eggecutor;  // mode used for Run
+    Eggecutor debug_eggecutor;   // mode used for TestSources
 
-    Path checker; // checker used for the problem
+    Path checker;  // checker used for the problem
 };
 
 }  // namespace tumbletest

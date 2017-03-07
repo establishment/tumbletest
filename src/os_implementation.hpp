@@ -15,15 +15,19 @@ namespace tumbletest {
 
 const std::string Path::default_path = Path::GetBasePath();
 
-OS& os = OS::GetSingleton(); // singleton for OS
-TumbletestCache& tumbletest_cache = TumbletestCache::GetSingleton(); // singleton for cache
+OS& os = OS::GetSingleton();                                          // singleton for OS
+TumbletestCache& tumbletest_cache = TumbletestCache::GetSingleton();  // singleton for cache
 
 /*
  * Random operators for path to work well with std::string
  */
-std::string operator+(const std::string& lhs, const Path& rhs) { return lhs + rhs.to_string(); }
+std::string operator+(const std::string& lhs, const Path& rhs) {
+    return lhs + rhs.to_string();
+}
 
-std::string operator+(const Path& lhs, const std::string& rhs) { return lhs.to_string() + rhs; }
+std::string operator+(const Path& lhs, const std::string& rhs) {
+    return lhs.to_string() + rhs;
+}
 
 std::ostream& operator<<(std::ostream& out, const Path& rhs) {
     out << rhs.to_string();
@@ -40,7 +44,7 @@ std::string Path::GetBasePath() {
 }
 
 /*
- * Absolute path for a given path (if it's only "file") the path is considered to be 
+ * Absolute path for a given path (if it's only "file") the path is considered to be
  * relative to the binary spawn not generator's code path
  */
 std::string Path::GetAbsolutePath(const std::string& current_path) const {
@@ -85,26 +89,28 @@ std::string Path::ExtensionLess() const {
  */
 std::string Path::md5() const {
     std::string result = "";
-    #ifdef __APPLE__
-        auto md5 = os.RunBashCommand("md5 " + absolute_path);
-        auto position = md5.find_last_of("=");
-        result = md5.substr(position + 2, md5.size() - position - 3);
-    #elif __linux__ 
-        auto md5sum = os.RunBashCommand("md5sum " + absolute_path);
-        result = md5sum.substr(0, 32);
-    #else
-        #error "gtfo windows"
-    #endif
+#ifdef __APPLE__
+    auto md5 = os.RunBashCommand("md5 " + absolute_path);
+    auto position = md5.find_last_of("=");
+    result = md5.substr(position + 2, md5.size() - position - 3);
+#elif __linux__
+    auto md5sum = os.RunBashCommand("md5sum " + absolute_path);
+    result = md5sum.substr(0, 32);
+#else
+#error "gtfo windows"
+#endif
 
     return result;
 }
 
-OS::OS() { }
+OS::OS() {
+}
 
 std::string OS::RunBashCommand(const char* cmd) {
-//    Info("Runbashcommand: ", cmd);
+    //    Info("Runbashcommand: ", cmd);
     FILE* pipe(popen(cmd, "r"));
-    if (!pipe) return "ERROR";
+    if (!pipe)
+        return "ERROR";
     char buffer[128];
     std::string result = "";
     while (!feof(pipe)) {
@@ -168,7 +174,7 @@ std::string OS::ReadFile(Path file) {
 
         fin.seekg(0, fin.beg);
 
-        fin.read(& file_information[0], file_information.size());
+        fin.read(&file_information[0], file_information.size());
         fin.close();
     } else {
         Error("Error while reading.");
@@ -188,7 +194,7 @@ Path OS::TmpFile() {
     std::string file_str = StrCat(Path::default_path, "/tumbletest/tmp/", "XXXXXX");
     char* file = strdup(file_str.c_str());
     auto descriptor = mkstemp(file);
-    
+
     if (descriptor == -1) {
         Error("Could not create file!");
     }
@@ -214,5 +220,7 @@ void TumbletestCache::ClearTmp() {
  * std::to_string for Path
  */
 namespace std {
-string to_string(const tumbletest::Path& path) { return path.to_string(); }
+string to_string(const tumbletest::Path& path) {
+    return path.to_string();
+}
 }  // namespace std

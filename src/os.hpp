@@ -14,18 +14,24 @@ namespace tumbletest {
  */
 class Path {
   public:
-  MakeCopyAndMove(Path)
+    MakeCopyAndMove(Path)
 
-    virtual ~Path() = default;
+        virtual ~Path() = default;
 
-    Path(const std::string& location) : absolute_path(GetAbsolutePath(location)) { }
+    Path(const std::string& location) : absolute_path(GetAbsolutePath(location)) {
+    }
 
-    Path(const char* location) : absolute_path(GetAbsolutePath(std::string(location))) { }
+    Path(const char* location) : absolute_path(GetAbsolutePath(std::string(location))) {
+    }
 
     // string shits
-    std::string to_string() const { return absolute_path; }
+    std::string to_string() const {
+        return absolute_path;
+    }
 
-    operator std::string() const { return absolute_path; }
+    operator std::string() const {
+        return absolute_path;
+    }
 
     std::string Extension() const;
 
@@ -70,7 +76,7 @@ class OS {
 
     Path TmpFile();
 
-  PermanentSingleton(OS)
+    PermanentSingleton(OS)
 };
 
 /*
@@ -80,9 +86,9 @@ class TumbletestCache {
   public:
     void ClearTmp();
 
-  PermanentSingleton(TumbletestCache);
+    PermanentSingleton(TumbletestCache);
 };
 
 }  // namespace tumbletest
 
-#include "os_implementation.hpp" // include implementation
+#include "os_implementation.hpp"  // include implementation

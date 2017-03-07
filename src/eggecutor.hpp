@@ -16,9 +16,7 @@ namespace tumbletest {
  */
 class EggecutorProfile {
   public:
-    EggecutorProfile(const bool& show_time,
-                     const double& time_limit,
-                     const bool& show_status,
+    EggecutorProfile(const bool& show_time, const double& time_limit, const bool& show_status,
                      const bool& print_errors_to_stdout);
 
     static EggecutorProfile Debug();
@@ -40,7 +38,8 @@ class EggecutorProfile {
 class ExecutionRunProfile {
   public:
     ExecutionRunProfile(const double& real, const double& user, const double& sys, const int& exit_code)
-            : real(real), user(user), sys(sys), cpu(user + sys), exit_code(exit_code) { }
+          : real(real), user(user), sys(sys), cpu(user + sys), exit_code(exit_code) {
+    }
 
     const double real, user, sys, cpu;
     int exit_code;
@@ -72,9 +71,9 @@ class ProgrammingLanguage {
   public:
     static Path base_binary_path;
 
-/*
- * Base class for every programming language
- */
+    /*
+     * Base class for every programming language
+     */
     class Base {
       public:
         virtual Path BinaryFile(const Path& source) = 0;
@@ -111,15 +110,15 @@ class ProgrammingLanguage {
         std::string RunCommand(const Path& source);
     };
 
-/*
- * An object from all programming languages is hashed here.
- */
+    /*
+     * An object from all programming languages is hashed here.
+     */
     class Library {
       public:
         std::map<std::string, ProgrammingLanguage::Base*> objects;
 
-        Library(std::map<std::string, ProgrammingLanguage::Base*> objects)
-                : objects(objects) { }
+        Library(std::map<std::string, ProgrammingLanguage::Base*> objects) : objects(objects) {
+        }
     };
 };
 
@@ -130,12 +129,14 @@ class ProgrammingLanguage {
  */
 class Eggecutor {
   public:
-    Eggecutor(const EggecutorProfile& profile) : profile(profile) { }
+    Eggecutor(const EggecutorProfile& profile) : profile(profile) {
+    }
 
     EggResult Run(const Path& source, const std::string& input_data) const;
-    std::pair<EggResult, CheckerResult> RunInteractive(const Path& source, const Path& checker, const std::string& input_data) const;
-    std::pair<EggResult, CheckerResult> RunChecker(const Path& checker,
-            const std::string& in, const std::string& ok, const std::string& out) const;
+    std::pair<EggResult, CheckerResult> RunInteractive(const Path& source, const Path& checker,
+                                                       const std::string& input_data) const;
+    std::pair<EggResult, CheckerResult> RunChecker(const Path& checker, const std::string& in, const std::string& ok,
+                                                   const std::string& out) const;
 
   private:
     const EggecutorProfile profile;

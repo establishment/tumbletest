@@ -1,13 +1,13 @@
 #pragma once
 
-#include "eggecutor.hpp" // header
+#include "eggecutor.hpp"  // header
 
 #include "checkers.hpp"
 #include "string_utils.hpp"
 
 #include <cmath>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace tumbletest {
 
@@ -17,13 +17,10 @@ Path BaseBinaryPath() {
 
 Path ProgrammingLanguage::base_binary_path = BaseBinaryPath();
 
-ProgrammingLanguage::Library language_library(
-        {
-                {"cpp",  new ProgrammingLanguage::CPP()},
-                {"cc",   new ProgrammingLanguage::CPP()},
-                {"java", new ProgrammingLanguage::Java()},
-                {"py",   new ProgrammingLanguage::Python()}
-        });
+ProgrammingLanguage::Library language_library({{"cpp", new ProgrammingLanguage::CPP()},
+                                               {"cc", new ProgrammingLanguage::CPP()},
+                                               {"java", new ProgrammingLanguage::Java()},
+                                               {"py", new ProgrammingLanguage::Python()}});
 
 EggecutorProfile EggecutorProfile::Debug() {
     return EggecutorProfile(true, 100.0, true, true);
@@ -37,18 +34,18 @@ EggecutorProfile EggecutorProfile::Testing(const double& time_limit) {
     return EggecutorProfile(false, time_limit, true, false);
 }
 
-EggecutorProfile::EggecutorProfile(const bool& show_time,
-                                   const double& time_limit,
-                                   const bool& show_status,
+EggecutorProfile::EggecutorProfile(const bool& show_time, const double& time_limit, const bool& show_status,
                                    const bool& print_errors_to_stdout)
-        : show_time(show_time),
-          time_limit(time_limit),
-          show_status(show_status),
-          print_errors_to_stdout(print_errors_to_stdout) { }
+      : show_time(show_time),
+        time_limit(time_limit),
+        show_status(show_status),
+        print_errors_to_stdout(print_errors_to_stdout) {
+}
 
 EggResult::EggResult(const Path& source, const std::string& stdin, const std::string& stdout, const std::string& stderr,
                      const ExecutionRunProfile& run_summary)
-        : source(source), stdin(stdin), stdout(stdout), stderr(stderr), run_summary(run_summary) { }
+      : source(source), stdin(stdin), stdout(stdout), stderr(stderr), run_summary(run_summary) {
+}
 
 EggResult Eggecutor::Run(const Path& source, const std::string& input_data) const {
     Path stdin = os.TmpFile();
@@ -63,11 +60,8 @@ EggResult Eggecutor::Run(const Path& source, const std::string& input_data) cons
     }
 
     language->Compile(source);
-    std::string run_command = StrCat(
-            language->RunCommand(source), " ",
-            "<", stdin, " ",
-            "1>", stdout, " ",
-            "2>", stderr);
+    std::string run_command =
+        StrCat(language->RunCommand(source), " ", "<", stdin, " ", "1>", stdout, " ", "2>", stderr);
 
     if (profile.show_status) {
         Info("Run source:\t", Colored(Color::magenta, source.File()));
@@ -78,22 +72,23 @@ EggResult Eggecutor::Run(const Path& source, const std::string& input_data) cons
     if (profile.show_status) {
         char buff[32];
         snprintf(buff, 32, "%.3lf", run_profile.real);
-        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:", Colored(Color::green, StrCat(run_profile.exit_code)));
+        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:",
+             Colored(Color::green, StrCat(run_profile.exit_code)));
     }
 
     std::string output = os.ReadFile(stdout);
     std::string errors = os.ReadFile(stderr);
 
     if (run_profile.exit_code != 0) {
-        Error(StrCat("Non zero exit status (", run_profile.exit_code, ")", "\n",
-                     "Source:\t", source));
+        Error(StrCat("Non zero exit status (", run_profile.exit_code, ")", "\n", "Source:\t", source));
     }
 
     tumbletest_cache.ClearTmp();
     return EggResult(source, input_data, output, errors, run_profile);
 }
 
-std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source, const Path& checker, const std::string& input_data) const {
+std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source, const Path& checker,
+                                                              const std::string& input_data) const {
     Path stdin = os.TmpFile();
     Path stdout = os.TmpFile();
     Path stderr = os.TmpFile();
@@ -117,18 +112,17 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source
 
     os.WriteFile("input.txt", input_data);
 
-    std::string run_command = StrCat(
-            language->RunCommand(source), " ",
-            "<", stdin, " ", "1>", stdout, " ", "2>", stderr, " & ", 
-            checker_lang->RunCommand(checker), 
-            " 1>", stdin, " <", stdout, " 2>", checker_stderr, " ; wait $! ");
+    std::string run_command =
+        StrCat(language->RunCommand(source), " ", "<", stdin, " ", "1>", stdout, " ", "2>", stderr, " & ",
+               checker_lang->RunCommand(checker), " 1>", stdin, " <", stdout, " 2>", checker_stderr, " ; wait $! ");
 
     auto run_profile = ExecuteCommand(run_command);
 
     if (profile.show_status) {
         char buff[32];
         snprintf(buff, 32, "%.3lf", run_profile.real);
-        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:", Colored(Color::green, StrCat(run_profile.exit_code)));
+        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:",
+             Colored(Color::green, StrCat(run_profile.exit_code)));
     }
 
     std::string output = "";
@@ -136,11 +130,11 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source
 
     std::string logger = os.ReadFile("logger.txt");
     std::string results = os.ReadFile("result.txt");
-    
+
     os.RunBashCommand("rm logger.txt");
     os.RunBashCommand("rm result.txt");
     os.RunBashCommand("rm input.txt");
- 
+
     std::stringstream R(results);
     bool passed = false;
     R >> passed;
@@ -157,8 +151,8 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source
     return {EggResult(source, input_data, output, errors, run_profile), CheckerResult({passed, message, logger})};
 }
 
-std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker, 
-            const std::string& in, const std::string& ok, const std::string& out) const {
+std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker, const std::string& in,
+                                                          const std::string& ok, const std::string& out) const {
     Path in_f = os.TmpFile();
     Path ok_f = os.TmpFile();
     Path out_f = os.TmpFile();
@@ -173,11 +167,8 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker,
     }
 
     language->Compile(checker);
-    std::string run_command = StrCat(
-            language->RunCommand(checker), " ",
-            "in_file=", in_f," ", 
-            "ok_file=", ok_f, " ", 
-            "out_file=", out_f, " 1>/dev/null 2>/dev/null");
+    std::string run_command = StrCat(language->RunCommand(checker), " ", "in_file=", in_f, " ", "ok_file=", ok_f, " ",
+                                     "out_file=", out_f, " 1>/dev/null 2>/dev/null");
 
     if (profile.show_status) {
         Info("Run checker:\t", Colored(Color::magenta, checker.File()));
@@ -188,7 +179,8 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker,
     if (profile.show_status) {
         char buff[32];
         snprintf(buff, 32, "%.3lf", run_profile.real);
-        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:", Colored(Color::green, StrCat(run_profile.exit_code)));
+        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:",
+             Colored(Color::green, StrCat(run_profile.exit_code)));
     }
 
     if (profile.show_status) {
@@ -217,18 +209,18 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker,
 ExecutionRunProfile Eggecutor::ExecuteCommand(const std::string& command) {
     std::string bash_output = "";
 
-    #ifdef __APPLE__
-        auto exec_command = "(time -p " + command + ") 2>&1" + "; echo \"exit $?\"";
-        bash_output = os.RunBashCommand(exec_command);
-    #elif __linux__ 
-        auto tmp_file = os.TmpFile();
-        auto exec_command = StrCat("time -p -o ", tmp_file, " ", command, "; echo exit $? >>", tmp_file);
-        os.RunBashCommand(exec_command);
-        bash_output = os.ReadFile(tmp_file);
-    #else
-        #error "gtfo windows"
-    #endif
-   
+#ifdef __APPLE__
+    auto exec_command = "(time -p " + command + ") 2>&1" + "; echo \"exit $?\"";
+    bash_output = os.RunBashCommand(exec_command);
+#elif __linux__
+    auto tmp_file = os.TmpFile();
+    auto exec_command = StrCat("time -p -o ", tmp_file, " ", command, "; echo exit $? >>", tmp_file);
+    os.RunBashCommand(exec_command);
+    bash_output = os.ReadFile(tmp_file);
+#else
+#error "gtfo windows"
+#endif
+
     auto lines = Split(bash_output, '\n');
     auto GetValueAfterTab = [](const std::string& txt) -> double {
         int position = txt.find(" ");
@@ -237,12 +229,8 @@ ExecutionRunProfile Eggecutor::ExecuteCommand(const std::string& command) {
 
     auto n = lines.size() - 1;
 
-    return ExecutionRunProfile(
-            GetValueAfterTab(lines[n - 4]),
-            GetValueAfterTab(lines[n - 3]),
-            GetValueAfterTab(lines[n - 2]),
-            int(std::round(GetValueAfterTab(lines[n - 1])))
-    );
+    return ExecutionRunProfile(GetValueAfterTab(lines[n - 4]), GetValueAfterTab(lines[n - 3]),
+                               GetValueAfterTab(lines[n - 2]), int(std::round(GetValueAfterTab(lines[n - 1]))));
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -263,8 +251,8 @@ bool ProgrammingLanguage::CPP::Compile(const Path& source) {
 
     Info("Compiling", "\t", source);
     auto err = os.TmpFile();
-    auto result = Eggecutor::ExecuteCommand(
-            "g++ -std=c++14 -O2 -Wall " + source + " -o " + this->BinaryFile(source) + " 2>" + err);
+    auto result = Eggecutor::ExecuteCommand("g++ -std=c++14 -O2 -Wall " + source + " -o " + this->BinaryFile(source) +
+                                            " 2>" + err);
     if (result.exit_code != 0) {
         Error(StrCat("compile errors for", "\t", source, "\n", os.ReadFile(err.to_string())));
         return false;
