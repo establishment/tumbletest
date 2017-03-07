@@ -1,0 +1,3 @@
+[submodule "third_party/generator-utils"]
+	path = third_party/generator-utils
+	url = https://github.com/establishment/generator-utils
