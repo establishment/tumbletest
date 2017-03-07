@@ -67,5 +67,5 @@ int main() {
 Default values
 --------------
 - the official solution is `official.cpp` and can be changed by calling `SetOfficialSource(path)`
-- the tests location is 'tests/` and can be changed by calling `SetTestsLocation(path)`
+- the tests location is `tests/` and can be changed by calling `SetTestsLocation(path)`
 - when comparing 2 sources, a checker is used to determine if the output is correct knowing the input and the ok from the official source. The name of the checker is `checker.cpp`. If this file is not present, a default checker will be used which will check if the files are the same, excluding whitespaces
