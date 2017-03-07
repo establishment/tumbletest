@@ -161,6 +161,28 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker, c
     os.WriteFile(ok_f, ok);
     os.WriteFile(out_f, out);
 
+    if (not os.ValidFile(checker)) {
+        if (checker.File() == "checker.cpp") {
+            os.WriteFile(checker,
+                         ""
+                         "#include <simple_batch_checker>\n"
+                         "using namespace std;\n"
+                         "\n"
+                         "// ofstream in, out, ok\n"
+                         "\n"
+                         "int main(int argc, char** argv) {\n"
+                         "    Init(argc, argv);\n"
+                         "    BasicDiff();\n"
+                         "\n"
+                         "    Judge(OK, 1.0, \"OK\");\n"
+                         "}\n");
+            Info("No checker file found. Using default checker.");
+            Info("checker.cpp file was created with default code.");
+        } else {
+            Error("Checker file not found. Checker name is not checker.cpp so default checker fallback is not available.");
+        }
+    }
+
     auto language = language_library.objects[checker.Extension()];
     if (language == nullptr) {
         Error(StrCat("Unknown extension for file:\t", checker.to_string()));
