@@ -22,6 +22,16 @@ ProgrammingLanguage::Library language_library({{"cpp", new ProgrammingLanguage::
                                                {"java", new ProgrammingLanguage::Java()},
                                                {"py", new ProgrammingLanguage::Python()}});
 
+ProgrammingLanguage::Base* Compile(const Path& source) {
+    ProgrammingLanguage::Base *language = language_library.objects[source.Extension()];
+    if (language == nullptr) {
+        Error(StrCat("Unknown extension for file:\t", source.to_string()));
+    }
+
+    language->Compile(source);
+    return language;
+}
+
 EggecutorProfile EggecutorProfile::Debug() {
     return EggecutorProfile(true, 100.0, true, true);
 }
@@ -54,33 +64,26 @@ EggResult Eggecutor::Run(const Path& source, const std::string& input_data) cons
 
     os.WriteFile(stdin, input_data);
 
-    auto language = language_library.objects[source.Extension()];
-    if (language == nullptr) {
-        Error(StrCat("Unknown extension for file:\t", source.to_string()));
-    }
-
-    language->Compile(source);
+    auto language = Compile(source);
     std::string run_command =
         StrCat(language->RunCommand(source), " ", "<", stdin, " ", "1>", stdout, " ", "2>", stderr);
 
     if (profile.show_status) {
-        Info("Run source:\t", Colored(Color::magenta, source.File()));
+        std::cerr << GetBloatware() << "\t\t" << Colored(Color::green, "> ") <<  Colored(Color::magenta, source.File()) << '\t';
     }
 
     auto run_profile = ExecuteCommand(run_command);
-
-    if (profile.show_status) {
-        char buff[32];
-        snprintf(buff, 32, "%.3lf", run_profile.real);
-        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:",
-             Colored(Color::green, StrCat(run_profile.exit_code)));
-    }
 
     std::string output = os.ReadFile(stdout);
     std::string errors = os.ReadFile(stderr);
 
     if (run_profile.exit_code != 0) {
+        std::cerr << '\n';
         Error(StrCat("Non zero exit status (", run_profile.exit_code, ")", "\n", "Source:\t", source));
+    } else if (profile.show_status) {
+         char buff[32];
+        snprintf(buff, 32, "%.3lf", run_profile.real);
+        std::cerr << "done\t" <<  Colored(Color::green, buff) << '\t';
     }
 
     tumbletest_cache.ClearTmp();
@@ -96,33 +99,32 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunInteractive(const Path& source
 
     os.WriteFile(stdin, input_data);
 
-    auto language = language_library.objects[source.Extension()];
-    auto checker_lang = language_library.objects[checker.Extension()];
-    if (language == nullptr) {
-        Error(StrCat("Unknown extension for file:\t", source.to_string()));
-    }
+    auto language = Compile(source);
+    auto checker_lang = Compile(checker);
 
     os.RunBashCommand(StrCat("rm ", stdin));
     os.RunBashCommand(StrCat("rm ", stdout));
     os.RunBashCommand(StrCat("mkfifo ", stdin));
     os.RunBashCommand(StrCat("mkfifo ", stdout));
-
-    language->Compile(source);
-    checker_lang->Compile(checker);
-
+ 
     os.WriteFile("input.txt", input_data);
 
     std::string run_command =
         StrCat(language->RunCommand(source), " ", "<", stdin, " ", "1>", stdout, " ", "2>", stderr, " & ",
                checker_lang->RunCommand(checker), " 1>", stdin, " <", stdout, " 2>", checker_stderr, " ; wait $! ");
 
+    if (profile.show_status) {
+        std::cerr << GetBloatware() << "\t\t" << Colored(Color::green, "> ") <<  Colored(Color::magenta, source.File()) << '\t';
+    }
     auto run_profile = ExecuteCommand(run_command);
 
-    if (profile.show_status) {
-        char buff[32];
+    if (run_profile.exit_code != 0) {
+        std::cerr << '\n';
+        Error(StrCat("Non zero exit status (", run_profile.exit_code, ")", "\n", "Source:\t", source));
+    } else if (profile.show_status) {
+         char buff[32];
         snprintf(buff, 32, "%.3lf", run_profile.real);
-        Info("Finished running in ", Colored(Color::green, buff), "\tExit code:",
-             Colored(Color::green, StrCat(run_profile.exit_code)));
+        std::cerr << "done\t" <<  Colored(Color::green, buff) << '\t';
     }
 
     std::string output = "";
@@ -271,7 +273,7 @@ bool ProgrammingLanguage::CPP::Compile(const Path& source) {
         return true;
     }
 
-    Info("Compiling", "\t", source);
+    std::cerr << GetBloatware() << Colored(4, 1, 1, "\tCompiling") << '\t' << source << '\n';
     auto err = os.TmpFile();
     auto result = Eggecutor::ExecuteCommand("g++ -std=c++14 -O2 -Wall " + source + " -o " + this->BinaryFile(source) +
                                             " 2>" + err);
@@ -291,7 +293,7 @@ std::string ProgrammingLanguage::CPP::RunCommand(const Path& source) {
 Path ProgrammingLanguage::Java::BinaryFile(const Path& source) {
     std::string dir = base_binary_path + "/" + source.md5();
     os.RunBashCommand("mkdir -p " + dir);
-    return dir + "/" + source.ExtensionLess();
+    return dir + "/" + source.File();
 }
 
 bool ProgrammingLanguage::Java::Compile(const Path& source) {
@@ -299,7 +301,7 @@ bool ProgrammingLanguage::Java::Compile(const Path& source) {
         return true;
     }
 
-    Info("Compiling", "\t", source);
+    std::cerr << GetBloatware() << Colored(4, 1, 1, "\tCompiling") << '\t' << source << '\n';
     os.RunBashCommand("cp " + source.to_string() + " " + BinaryFile(source));
     auto err = os.TmpFile();
     auto result = Eggecutor::ExecuteCommand("javac -Xlint " + BinaryFile(source) + " 2>" + err.to_string());
@@ -313,7 +315,7 @@ bool ProgrammingLanguage::Java::Compile(const Path& source) {
 }
 
 std::string ProgrammingLanguage::Java::RunCommand(const Path& source) {
-    return "java " + BinaryFile(source);
+    return "java " + BinaryFile(source).ExtensionLess();
 }
 
 // python
@@ -329,7 +331,7 @@ bool ProgrammingLanguage::Python::Compile(const Path& source) {
 }
 
 std::string ProgrammingLanguage::Python::RunCommand(const Path& source) {
-    return "python " + BinaryFile(source);
+    return "python3 " + BinaryFile(source);
 }
 
 }  // namespace tumbletest

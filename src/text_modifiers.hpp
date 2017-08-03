@@ -1,8 +1,16 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 
 namespace tumbletest {
+
+    std::string RGBColor(int a, int b, int c) {
+        int index = a * 6 * 6 + b * 6 + c + 16; 
+        auto str = std::to_string(index);
+        return "\033[38;5;" + str + "m";
+    }
+
     namespace Color {
         static const std::string black =            "\033[22;30m";
         static const std::string red =              "\033[22;31m";
@@ -27,4 +35,50 @@ namespace tumbletest {
     std::string Colored(std::string color, const std::string& text) {
         return color + text + Color::default_color;
     }
+
+    std::string Colored(int a, int b, int c, const std::string& text) {
+        return RGBColor(a, b, c) + text + Color::default_color;
+    }   
+ 
+    std::string Gradient(const std::string txt) {
+        std::string finish = "";
+        static int l[6] = {1, 5, 1, 5, 1, 5};
+        static int a = l[0] + rand() % l[1], b = l[2] + rand() % l[3], c = l[4] + rand() % l[5], d = rand() % 6;
+        static int da[6] = {0, 0, 0, 0, +1, -1};
+        static int db[6] = {0, 0, +1, -1, 0, 0};
+        static int dc[6] = {+1, -1, 0, 0, 0, 0};
+        for (int i = 0; i < (int)txt.size(); i += 1) {
+            int na, nb, nc;
+            while (1) {
+                na = a + da[d];
+                nb = b + db[d];
+                nc = c + dc[d];
+                if (l[0] <= na and na < l[1] and l[2] <= nb and nb < l[3] and l[4] <= nc and nc < l[5]) {
+                    break;
+                } else {
+                    d = rand() % 6;
+                }
+            }
+            a = na; b = nb; c = nc;
+            std::string f(1, txt[i]);
+            if (txt[i] < 0) {
+                i += 1;
+                f += std::string(1, txt[i]);
+            }
+            finish += Colored(a, b, c, f);
+//            finish += std::string(1, ch);
+        }
+        return finish;
+    }
+
+    std::string GetBloatware() {
+        static int next = 0;
+        std::string bloatware[2] = {
+            "¸,ø¤º°°º¤ø,¸,ø¤º°°º¤ø,",
+            "°º¤ø,¸¸,ø¤º°º¤ø,¸¸,ø¤°"
+        };
+
+        return Gradient(bloatware[(next++)&1]);
+    }
+
 } // namespace tumbletest

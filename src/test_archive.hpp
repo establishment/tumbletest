@@ -59,7 +59,7 @@ class TestCase {
 
     std::string DetailsWithSeed();
 
-    const std::string& Input();
+    std::string Input() const;
 
     std::string Input(const unsigned& seed) const;
 
