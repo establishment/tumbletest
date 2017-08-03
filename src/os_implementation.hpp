@@ -162,7 +162,7 @@ bool OS::ValidFile(Path file) {
 
 std::string OS::ReadFile(Path file) {
     if (not ValidFile(file)) {
-        Error("Invalid file.");
+        Error("Invalid file.(", file, ")");
     }
 
     std::ifstream fin(file, std::ios::in | std::ios::binary);

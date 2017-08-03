@@ -32,6 +32,20 @@ ProgrammingLanguage::Base* Compile(const Path& source) {
     return language;
 }
 
+void EnsureChecker(const Path& checker) {
+    if (not os.ValidFile(checker)) {
+        if (checker.File() == "checker.cpp") {
+            os.RunBashCommand(StrCat("cp /usr/local/include/default_batch_checker.cpp ", checker));
+            Info("No checker file found. Using default checker.");
+            Info("checker.cpp file was created with default code.");
+        } else {
+            Error(
+                "Checker file not found. Checker name is not checker.cpp so default checker fallback is not "
+                "available.");
+        }
+    }
+}
+
 EggecutorProfile EggecutorProfile::Debug() {
     return EggecutorProfile(true, 100.0, true, true);
 }
@@ -163,27 +177,7 @@ std::pair<EggResult, CheckerResult> Eggecutor::RunChecker(const Path& checker, c
     os.WriteFile(ok_f, ok);
     os.WriteFile(out_f, out);
 
-    if (not os.ValidFile(checker)) {
-        if (checker.File() == "checker.cpp") {
-            os.WriteFile(checker,
-                         ""
-                         "#include <simple_batch_checker>\n"
-                         "using namespace std;\n"
-                         "\n"
-                         "// ofstream in, out, ok\n"
-                         "\n"
-                         "int main(int argc, char** argv) {\n"
-                         "    Init(argc, argv);\n"
-                         "    BasicDiff();\n"
-                         "\n"
-                         "    Judge(OK, 1.0, \"OK\");\n"
-                         "}\n");
-            Info("No checker file found. Using default checker.");
-            Info("checker.cpp file was created with default code.");
-        } else {
-            Error("Checker file not found. Checker name is not checker.cpp so default checker fallback is not available.");
-        }
-    }
+    EnsureChecker(checker);
 
     auto language = language_library.objects[checker.Extension()];
     if (language == nullptr) {

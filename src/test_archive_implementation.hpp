@@ -171,6 +171,7 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
     if (is_interactive) {
         other_sources.push_back(official_source);
     }
+    EnsureChecker(checker);
     Compile(checker);
     Compile(official_source);
     for (auto itr : other_sources) {
