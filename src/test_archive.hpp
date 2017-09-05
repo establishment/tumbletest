@@ -48,6 +48,8 @@ class TestCase {
     TestCase& SetType(const TestType& type);
 
     TestCase& Example();
+    
+    TestCase& Output(const std::string& output);
 
     // sort by type, and in case of equality, based on the time it was inserted
     bool operator<(const TestCase& rhs) const;
@@ -77,6 +79,10 @@ class TestCase {
     // caching purpose
     bool is_computed;
     std::string input;
+
+  public:
+    bool has_output;
+    std::string output;
 };
 
 /*

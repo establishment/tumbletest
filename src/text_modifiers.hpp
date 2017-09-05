@@ -43,7 +43,7 @@ namespace tumbletest {
     std::string Gradient(const std::string txt) {
         std::string finish = "";
         static int l[6] = {1, 5, 1, 5, 1, 5};
-        static int a = l[0] + rand() % l[1], b = l[2] + rand() % l[3], c = l[4] + rand() % l[5], d = rand() % 6;
+        static int a = l[0] + rand() % (l[1] - l[0]), b = l[2] + rand() % (l[3] - l[2]), c = l[4] + rand() % (l[5] - l[4]), d = rand() % 6;
         static int da[6] = {0, 0, 0, 0, +1, -1};
         static int db[6] = {0, 0, +1, -1, 0, 0};
         static int dc[6] = {+1, -1, 0, 0, 0, 0};

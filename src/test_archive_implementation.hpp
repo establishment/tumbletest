@@ -36,7 +36,9 @@ TestCase::TestCase(std::function<std::string()> function, const std::string& fun
         function(function),
         seed(0),
         initial_test_number(added_testcases++),
-        function_call_string(function_call_string) {
+        function_call_string(function_call_string),
+        has_output(false),
+        output("") {
     int call_string_hash = DummyHash(function_call_string);
     this->seed = call_string_hash + (hash_counter[call_string_hash]++);
 };
@@ -63,6 +65,12 @@ TestCase& TestCase::SetType(const TestType& type) {
 
 TestCase& TestCase::Example() {
     return this->Type(EXAMPLE);
+}
+
+TestCase& TestCase::Output(const std::string& output) {
+    this->has_output = true;
+    this->output = output;
+    return *this;
 }
 
 bool TestCase::operator<(const TestCase& rhs) const {
@@ -152,7 +160,11 @@ void TestArchive::Run() {
         if (not is_interactive) {
             EggResult test_result = deploy_eggecutor.Run(official_source, input);
             std::cerr << '\n';
-            os.WriteFile(tests_location + test_prefix + std::to_string(test_number) + ".ok", test_result.stdout);
+            auto stdok = test_result.stdout;
+            if (itr.has_output) {
+                stdok = itr.output;
+            }
+            os.WriteFile(tests_location + test_prefix + std::to_string(test_number) + ".ok", stdok);
         } else {
             auto all_results = deploy_eggecutor.RunInteractive(official_source, checker, input);
             if (itr.Type() == EXAMPLE) {
@@ -204,12 +216,16 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
 
             if (not is_interactive) {
                 EggResult official_result = debug_eggecutor.Run(official_source, input); std::cerr << '\n';
+                std::string stdok = official_result.stdout;
+                if (run_number == 0 and testcase.has_output) {
+                    stdok = testcase.output;
+                }
 
                 for (auto itr : other_sources) {
                     EggResult other_result = debug_eggecutor.Run(itr, input); 
 
                     auto checker_results = deploy_eggecutor.RunChecker(checker, official_result.stdin,
-                                                                       official_result.stdout, other_result.stdout);
+                                                                       stdok, other_result.stdout);
 
                     std::cerr << "Checker: " << (checker_results.second.passed ? Colored(Color::green, "Passed!")
                                                                                : Colored(Color::red, "Not passed"))
@@ -223,7 +239,7 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
                         std::cerr << "Input Ok and Output have been written to tumbletest/{in,ok,out}.txt\n";
 
                         os.WriteFile(Path::default_path + "/tumbletest/in.txt", official_result.stdin);
-                        os.WriteFile(Path::default_path + "/tumbletest/ok.txt", official_result.stdout);
+                        os.WriteFile(Path::default_path + "/tumbletest/ok.txt", stdok);
                         os.WriteFile(Path::default_path + "/tumbletest/out.txt", other_result.stdout);
                         
                         exit(0);
