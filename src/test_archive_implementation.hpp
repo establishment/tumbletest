@@ -89,21 +89,25 @@ std::string TestCase::Input() const {
     return Input(seed);
 }
 
-std::string TestCase::Details(bool show_seed = true) {
-    return StrCat("Number:", "\t", this->initial_test_number, "\n",
-                  (show_seed) ? StrCat("Seed:\t", this->seed, "\n") : "", "Command:", "\t", this->function_call_string);
-}
+std::string TestCase::Details(unsigned s = 0) {
+    if (s == 0) {
+        s = this->seed;
+    }
 
-std::string TestCase::DetailsWithoutSeed() {
-    return this->Details(false);
-}
-
-std::string TestCase::DetailsWithSeed() {
-    return this->Details(true);
+    return StrCat(
+            "Number:", "\t", this->initial_test_number, "\n",
+            "Seed:\t", s, "\n",
+            "Command:", "\t", this->function_call_string, '\n',
+            Colored(Color::green, "Generate this testcase using\t"), "addTest(",
+                this->function_call_string, ").Seed(", s, ");", '\n');
 }
 
 const TestType& TestCase::Type() const {
     return this->type;
+}
+
+unsigned TestCase::GetSeed() const {
+    return this->seed;
 }
 
 TestArchive& test_archive = TestArchive::GetSingleton();
@@ -212,6 +216,11 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
                 input = testcase.Input(seed);
             }
 
+            int test_gen_seed = seed;
+            if (run_number == 0) {
+                test_gen_seed = testcase.GetSeed();
+            }
+
             os.WriteFile(Path::default_path + "/tumbletest/in.txt", input);
 
             if (not is_interactive) {
@@ -235,7 +244,7 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
                         std::cerr << Colored(Color::red, "[Failed]") << '\n';
                         std::cerr << "Checker message:\"" << checker_results.second.message << '\n';
                         std::cerr << Colored(Color::light_magenta, "Test information\n");
-                        std::cerr << testcase.Details() << '\n';
+                        std::cerr << testcase.Details(test_gen_seed) << '\n';
                         std::cerr << "Input Ok and Output have been written to tumbletest/{in,ok,out}.txt\n";
 
                         os.WriteFile(Path::default_path + "/tumbletest/in.txt", official_result.stdin);
@@ -258,7 +267,7 @@ void TestArchive::TestSources(int num_runs, std::vector<Path> other_sources) {
                         std::cerr << Colored(Color::red, "[Failed]") << '\n';
                         std::cerr << "Checker message:\"" << all_results.second.message << '\n';
                         std::cerr << Colored(Color::light_magenta, "Test information\n");
-                        std::cerr << testcase.Details() << '\n';
+                        std::cerr << testcase.Details(test_gen_seed) << '\n';
                         std::cerr << "Input Ok and Output have been written to tumbletest/{in,ok,out}.txt\n";
 
                         exit(0);

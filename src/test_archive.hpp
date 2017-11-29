@@ -55,17 +55,15 @@ class TestCase {
     bool operator<(const TestCase& rhs) const;
 
     // use
-    std::string Details(bool show_seed);
-
-    std::string DetailsWithoutSeed();
-
-    std::string DetailsWithSeed();
+    std::string Details(unsigned seed);
 
     std::string Input() const;
 
     std::string Input(const unsigned& seed) const;
 
     const TestType& Type() const;
+
+    unsigned GetSeed() const;
 
   protected:
     TestType type;
