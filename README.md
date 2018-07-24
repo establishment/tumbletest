@@ -41,14 +41,28 @@ Examples
 #include <generator_utils>
 using namespace std;
 
+// test the correctness of the input
+void Asserts(int a, int b) {
+    assert(1 <= a and a <= 1e9);
+    assert(1 <= b and b <= 1e9);
+}
+
+// make the testcase matching the whitespace conditions 
+// mentioned in the statement in an easy way
+string Stringify(int a, int b) {
+    Asserts(a, b);
+
+    return StrCat(a, ' ', b, '\n');
+}
+
+// generate a test case with 2 random numbers between [1, max_val]
 string Random(int max_val = 1e9) {
-    return StrCat(
-        Rand(1, max_val + 1), ' ',
-        Rand(1, max_val + 1), '\n'
-        );
+    return Stringify(xRand(1, max_val), xRand(1, max_val));
 }
 
 int main() {
+    addTest(Stringify(10, 20));         // add a static test case
+    addTest(Stringify(1, 100));
     addTest(Random(10));                // 2 random numbers in range [1, 10]
     addTest(Random(20)).Seed(1000);     // this test will be created with a fixed seed of 1000
     addTest(Random());                  // 2 random numbers in range [1, 1e9]
@@ -59,9 +73,10 @@ int main() {
     TestSources(200, "other_cool_implementation.cpp");
 
     // or to test multiple sources in paralel
-    TestSources(200, {"a.cpp", "b.cpp"});
+    TestSources(200, {"a.cpp", "b.cpp", "c.py"});
     return 0;
 }
+
 ```
 
 Default values
